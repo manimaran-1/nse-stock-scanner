@@ -7,6 +7,51 @@ from datetime import datetime
 
 st.set_page_config(page_title="NSE Stock Scanner", layout="wide")
 
+# --- SECURITY & UI CONFIG ---
+hide_st_style = '''
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+'''
+st.markdown(hide_st_style, unsafe_allow_html=True)
+import hmac
+
+# Secure password check using st.secrets
+if "password_correct" not in st.session_state:
+    st.session_state.password_correct = False
+
+def check_password():
+    if st.secrets.get("password"):
+        if st.session_state.password_correct:
+            return True
+        st.markdown("""
+            <h1 style='text-align: center; margin-top: 50px;'>🔐 Secure Access</h1>
+        """, unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("login_form"):
+                password = st.text_input("Password", type="password", key="login_password")
+                submit = st.form_submit_button("Login", use_container_width=True)
+            if submit:
+                # Convert the secret to string to match input reliably
+                if password == str(st.secrets.get("password", "")):
+                    st.session_state.password_correct = True
+                    st.rerun()
+                else:
+                    st.error("❌ Incorrect password")
+        return False
+    else:
+        st.error("Secrets not configured. Please set password in Streamlit Cloud Advanced Settings.")
+        return False
+
+if not check_password():
+    st.stop()
+
+# -----------------------------
+
+
 st.title("NSE Stock Scanner 📈")
 st.markdown("Filter stocks based on custom EMA, Stoch RSI, SMI, and MACD criteria.")
 
